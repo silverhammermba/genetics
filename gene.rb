@@ -1,5 +1,9 @@
 class Gene
-	@@mutation_rate = 1
+	@@mutation_rate = 0.1
+
+	def self.sample
+		new *Array.new(2) { Alele::pool.sample }
+	end
 
 	def initialize a1, a2, mutated = false
 		@aleles = [a1, a2].sort_by(&:to_s)
@@ -28,10 +32,10 @@ class Gene
 	def + gene
 		# choose aleles
 		als = [random_alele, gene.random_alele]
-		# see if there was a mutation
+		# check for (apparent mutations)
 		mutation = als.any? { |a| [self, gene].all? { |g| not g.aleles.include?(a) } }
 
-		Gene.new(*als, mutation)
+		self.class.new(*als, mutation)
 	end
 end
 
