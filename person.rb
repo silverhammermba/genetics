@@ -25,13 +25,14 @@ class Person
 		@born = time
 		@time = time
 		@children = 0
-		@want_to_mate = 0
+		@chance_to_mate = 0
 	end
 
 	def live
 		@time += 1
+		@wants_to_mate = rand < @chance_to_mate and rand > (age / 100.0)
 		if can_reproduce?
-			@want_to_mate += rand * 0.2
+			@chance_to_mate += rand * 0.2
 		end
 	end
 
@@ -45,7 +46,7 @@ class Person
 
 	def can_reproduce?
 		if @female
-			mature? and age <= (50 * 12) and not @pregnant
+			mature? and age <= (50 * 12)
 		else
 			mature?
 		end
@@ -74,24 +75,24 @@ class Person
 	end
 
 	attr_reader :female, :genes
-	attr_accessor :pregnant, :children, :want_to_mate
+	attr_accessor :pregnant, :children, :chance_to_mate, :wants_to_mate
 
 	def male
 		not female
 	end
 
-	def wants_to_mate?
-		rand < @want_to_mate
-	end
-
 	def + person
-		@want_to_mate = 0
-		person.want_to_mate = 0
+		@chance_to_mate = 0
+		person.chance_to_mate = 0
+		@wants_to_mate = false
+		person.wants_to_mate = false
 		if @female != person.female and can_reproduce? and person.can_reproduce?
 			woman = (@female? self : person)
-			woman.pregnant = [@time + 9, self.class.new(@time + 9, *@genes.zip(person.genes).map { |g1, g2| g1 + g2 })]
-			@children += 1
-			person.children += 1
+			unless woman.pregnant
+				woman.pregnant = [@time + 9, self.class.new(@time + 9, *@genes.zip(person.genes).map { |g1, g2| g1 + g2 })]
+				@children += 1
+				person.children += 1
+			end
 		end
 	end
 
