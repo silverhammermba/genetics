@@ -3,24 +3,11 @@ def probability_for_deaths range, p
 end
 
 class Person
-	def self.male
-		p = sample
-		p.instance_eval { @female = false }
-		p
-	end
-
-	def self.female
-		p = sample
-		p.instance_eval { @female = true }
-		p
-	end
-
 	def self.sample
 		new 0, *Array.new(10) { Gene.sample }
 	end
 
 	def initialize time, *genes
-		@female = rand < 0.5
 		@genes = genes
 		@born = time
 		@time = time
@@ -45,11 +32,7 @@ class Person
 	end
 
 	def can_reproduce?
-		if @female
-			mature? and age <= (50 * 12)
-		else
-			mature?
-		end
+		mature?
 	end
 
 	def chance_of_death
@@ -74,33 +57,41 @@ class Person
 		@genes.to_s
 	end
 
-	attr_reader :female, :genes
-	attr_accessor :pregnant, :children, :chance_to_mate, :wants_to_mate
-
-	def male
-		not female
-	end
+	attr_reader :genes, :wants_to_mate
+	attr_accessor :children
 
 	def + person
 		@chance_to_mate = 0
-		person.chance_to_mate = 0
 		@wants_to_mate = false
-		person.wants_to_mate = false
-		if @female != person.female and can_reproduce? and person.can_reproduce?
-			woman = (@female? self : person)
-			unless woman.pregnant
-				woman.pregnant = [@time + 9, self.class.new(@time + 9, *@genes.zip(person.genes).map { |g1, g2| g1 + g2 })]
-				@children += 1
-				person.children += 1
-			end
+		person.instance_eval do
+			@chance_to_mate = 0
+			@wants_to_mate = false
+		end
+	end
+end
+
+class Male < Person
+end
+
+class Female < Person
+	def birth
+		if @pregnant and (baby = @pregnant[@time])
+			@pregnant = nil
+			baby
 		end
 	end
 
-	def birth
-		if @pregnant and @pregnant[0] == @time
-			baby = @pregnant[1]
-			@pregnant = nil
-			baby
+	def can_reproduce?
+		super and age <= (50 * 12) and not @pregnant
+	end
+
+	def + person
+		super person
+		if person.is_a? Male and can_reproduce? and person.can_reproduce?
+			sex = rand < 0.5 ? Male : Female
+			@pregnant = {@time + 9 => sex.new(@time + 9, *@genes.zip(person.genes).map { |g1, g2| g1 + g2 })}
+			@children += 1
+			person.children += 1
 		end
 	end
 end

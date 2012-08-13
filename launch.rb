@@ -4,8 +4,8 @@ path = File.dirname($0)
 ['gene', 'person'].each { |dependency| require File.join('.', *path, dependency) }
 
 people = []
-people << Person.male
-people << Person.female
+people << Male.sample
+people << Female.sample
 
 stats = {
 :births => 0,
@@ -33,14 +33,14 @@ years = 150
 		# if they die
 		if rand < person.chance_of_death
 			stats["max age"] = person.age if person.age > stats["max age"]
-			stats["max children men"] = person.children if person.male and person.children > stats["max children men"]
-			stats["max children women"] = person.children if person.female and person.children > stats["max children women"]
-			stats["children women"] += person.children if person.female
-			stats["children men"] += person.children if person.male
-			stats["deaths women"] += 1 if person.female
-			stats["deaths men"] += 1 if person.male
-			stats["childless women"] += 1 if person.children == 0 and person.female
-			stats["childless men"] += 1 if person.children == 0 and person.male
+			stats["max children men"] = person.children if person.is_a? Male and person.children > stats["max children men"]
+			stats["max children women"] = person.children if person.is_a? Female and person.children > stats["max children women"]
+			stats["children women"] += person.children if person.is_a? Female
+			stats["children men"] += person.children if person.is_a? Male
+			stats["deaths women"] += 1 if person.is_a? Female
+			stats["deaths men"] += 1 if person.is_a? Male
+			stats["childless women"] += 1 if person.children == 0 and person.is_a? Female
+			stats["childless men"] += 1 if person.children == 0 and person.is_a? Male
 			people.delete person
 		end
 	end
@@ -63,7 +63,7 @@ years = 150
 	stats[:successful] += willing - people.reject { |p| not p.wants_to_mate }.size
 
 	people.each do |person|
-		if baby = person.birth
+		if person.is_a? Female and baby = person.birth
 			people << baby
 			stats[:births] += 1
 		end
@@ -84,6 +84,6 @@ stats["children men"] /= stats["deaths men"].to_f
 stats["max age"] /= 12.0
 stats[:willing] /= (years * 12).to_f
 stats[:successful] /= (years * 12).to_f
-stats[:men] = people.reject { |p| p.female }.size
+stats[:men] = people.reject { |p| p.is_a? Female }.size
 stats[:women] = people.size - stats[:men]
 stats.each_pair { |k,v| puts "#{k}: #{v}"}
