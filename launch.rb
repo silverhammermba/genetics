@@ -9,6 +9,7 @@ people << Female.sample
 
 stats = {
 :births => 0,
+"average lifespan" => 0,
 "deaths women" => 0,
 "deaths men" => 0,
 "children women" => 0,
@@ -18,12 +19,13 @@ stats = {
 "childless men" => 0,
 "childless women" => 0,
 "max age" => 0,
+"min age" => 0,
 :population => 0,
 :willing => 0,
 :successful => 0,
 }
 
-years = 150
+years = 100
 
 (0...(years * 12)).each do |month|
 	break if people.empty?
@@ -32,7 +34,11 @@ years = 150
 	people.reverse_each do |person|
 		# if they die
 		if rand < person.chance_of_death
+			#puts "#{person} died at age #{person.age} in year #{month / 12}"
+			#gets
+			stats["average lifespan"] += person.age
 			stats["max age"] = person.age if person.age > stats["max age"]
+			stats["min age"] = person.age if person.age < stats["min age"]
 			stats["max children men"] = person.children if person.is_a? Male and person.children > stats["max children men"]
 			stats["max children women"] = person.children if person.is_a? Female and person.children > stats["max children women"]
 			stats["children women"] += person.children if person.is_a? Female
@@ -78,6 +84,7 @@ puts
 #	stats["childless men"] += 1 if person.children == 0 and person.male
 #end
 stats[:deaths] = stats["deaths women"] + stats["deaths men"]
+stats["average lifespan"] /= (stats[:deaths].to_f * 12)
 stats[:population] = people.size
 stats["children women"] /= stats["deaths women"].to_f
 stats["children men"] /= stats["deaths men"].to_f
